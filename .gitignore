@@ -1,0 +1,13 @@
+.venv/
+node_modules/
+__pycache__/
+*.pyc
+data/
+results/
+*.csv
+equity.png
+equity.json
+report.html
+KILL_SWITCH
+.env
+*.pem
