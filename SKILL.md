@@ -149,6 +149,13 @@ The generic report page is rendered by `scripts/report_html.py`; portfolio strat
 
 ## Optional testnet trading
 
+How the wallet works in this project (for the agent):
+
+- The user's master wallet stays in their wallet app; scripts never touch it. Trading uses a separate API/agent key that can trade but cannot withdraw.
+- Keys live in `~/.hyperliquid/env` (`HL_ACCOUNT_ADDRESS`, `HL_AGENT_KEY`, `HL_NETWORK`). `trade.py` loads this file itself — never read, print, or copy the secret, and never ask the user to paste any key into the chat.
+- Setup is done by the user, not the agent: if the env file is missing, or `trade.py balance` reports missing keys, tell the user to run `python scripts/setup_keys.py` in their own terminal (it stores the master address and the agent key they create on the testnet API page), then stop and wait. After setup the user restarts opencode once so new sessions pick up the env file.
+- Verify the connection before any trading: `python scripts/trade.py balance` should print the account address and its testnet `accountValue`. If the agent address or balance does not match what the user expects, stop and report it.
+
 ```bash
 python scripts/setup_keys.py
 python scripts/trade.py balance

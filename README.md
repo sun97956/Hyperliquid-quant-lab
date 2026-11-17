@@ -119,9 +119,14 @@ The generic backtest uses the strategy name for the folder. Portfolio strategy s
 - min order notional: 5 USDC
 - `KILL_SWITCH` file freezes new sends
 
-## Optional testnet trading
+## Wallet setup and testnet trading
 
-`scripts/setup_keys.py` stores a master address and an API/agent key in `~/.hyperliquid/env` (mode 600). The agent key can trade but cannot withdraw.
+Trading in this project uses an API/agent wallet — a sub-key that can trade but cannot withdraw — never your main wallet key:
+
+1. Create an API/agent wallet on the Hyperliquid testnet site (API page) and copy its private key once.
+2. Run `python scripts/setup_keys.py` in your own terminal and paste your master address + the agent key. It writes `~/.hyperliquid/env` (mode 600) with `HL_ACCOUNT_ADDRESS`, `HL_AGENT_KEY`, and `HL_NETWORK`.
+3. Restart opencode once after setup. `scripts/trade.py` loads the env file itself; the agent never sees the key.
+4. Verify the setup: `python scripts/trade.py balance` prints the account address and its testnet balance.
 
 `scripts/trade.py` defaults to dry-run. `--send` still requires typing `YES`.
 
