@@ -2,7 +2,9 @@
 
 A local research workspace for crypto strategy backtests on Hyperliquid public candles, with optional testnet paper trading.
 
-## Quick start
+It can be driven two ways: run the Python scripts directly, or let an opencode + DeepSeek agent drive them through the `SKILL.md` playbook in this repo. Either way, all computation stays in the scripts — the agent only fills in parameters, runs commands, and explains results.
+
+## Quick start (scripts only, no agent)
 
 Requirements: Python 3.9+.
 
@@ -15,6 +17,45 @@ Public candle check (no keys required):
 ```bash
 python scripts/data.py candles ETH --granularity 1d --start 2024-01-01
 ```
+
+## Run it with opencode (agent workflow)
+
+### Step 1: Install opencode
+
+Either install it globally:
+
+```bash
+npm install -g opencode-ai
+```
+
+or run it without installing, from inside this folder (this repo carries a `package.json` for the local setup):
+
+```bash
+npx opencode
+```
+
+Start opencode **from this repo's folder** — it works with the files and skills it can see from where it is launched.
+
+### Step 2: Connect DeepSeek
+
+Inside opencode:
+
+1. Run `/connect`, choose **DeepSeek**, and paste your DeepSeek API key.
+2. Run `/models` and select the DeepSeek model you want to use.
+3. Ask it a trivial question (e.g. "say hi") to confirm the model actually replies before you continue.
+
+### Step 3: Import the skill
+
+opencode has no "import skill" command. At startup it automatically scans a fixed set of folders for skill folders — one of them is `~/.claude/skills/`. A skill is imported simply by **cloning this repo into that folder** (the `SKILL.md` at the repo root is the playbook):
+
+```bash
+git clone https://github.com/sun97956/Hyperliquid-quant-lab.git ~/.claude/skills/Hyperliquid-quant-lab
+```
+
+Two things to know:
+
+- If you clone or update the skill while opencode is already running, **restart opencode** — it only scans at startup.
+- To verify the skill was picked up, start opencode and ask it to `List your available skills`. If the skill is missing, check that `SKILL.md` sits directly inside the cloned folder.
 
 ## Strategies
 
@@ -92,6 +133,7 @@ Safety:
 
 | File | Role |
 |---|---|
+| `SKILL.md` | Agent playbook: how opencode drives the scripts, stage by stage |
 | `scripts/portfolio_engine.py` | Shared data loading, portfolio simulation, metrics, and report rendering |
 | `scripts/index_strategy_v1.py` | Index Strategy v1 |
 | `scripts/index_strategy_v2.py` | Index Strategy v2 |
