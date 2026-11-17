@@ -9,7 +9,7 @@ It can be driven two ways: run the Python scripts directly, or let an opencode +
 Requirements: Python 3.9+.
 
 ```bash
-pip install hyperliquid-python-sdk eth-account numpy pandas matplotlib
+pip install -r requirements.txt
 ```
 
 Public candle check (no keys required):
@@ -36,10 +36,10 @@ Do the following, then print a checklist table (OK / FAIL):
    else
      git clone https://github.com/sun97956/Hyperliquid-quant-lab.git ~/.claude/skills/Hyperliquid-quant-lab
    fi
-3) mkdir -p ~/lab-hl && cp -R ~/.claude/skills/Hyperliquid-quant-lab/{scripts,templates} ~/lab-hl/
+3) mkdir -p ~/lab-hl && cp -R ~/.claude/skills/Hyperliquid-quant-lab/{scripts,templates} ~/lab-hl/ && cp ~/.claude/skills/Hyperliquid-quant-lab/requirements.txt ~/lab-hl/
 4) python3 -m venv ~/lab-hl/.venv && source ~/lab-hl/.venv/bin/activate
    pip install -U pip
-   pip install hyperliquid-python-sdk eth-account numpy pandas matplotlib
+   pip install -r requirements.txt
 5) Quick checks (public data only — no keys):
    cd ~/lab-hl && source .venv/bin/activate
    python scripts/data.py candles ETH --granularity 1h --start 2026-09-01 | tail -5
@@ -55,9 +55,9 @@ Manual fallback:
 
 ```bash
 git clone https://github.com/sun97956/Hyperliquid-quant-lab.git ~/.claude/skills/Hyperliquid-quant-lab
-mkdir -p ~/lab-hl && cp -R ~/.claude/skills/Hyperliquid-quant-lab/{scripts,templates} ~/lab-hl/
+mkdir -p ~/lab-hl && cp -R ~/.claude/skills/Hyperliquid-quant-lab/{scripts,templates} ~/lab-hl/ && cp ~/.claude/skills/Hyperliquid-quant-lab/requirements.txt ~/lab-hl/
 cd ~/lab-hl && python3 -m venv .venv && source .venv/bin/activate
-pip install hyperliquid-python-sdk eth-account numpy pandas matplotlib
+pip install -r requirements.txt
 ```
 
 ## Strategies

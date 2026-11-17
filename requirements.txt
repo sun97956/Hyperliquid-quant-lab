@@ -1,0 +1,5 @@
+hyperliquid-python-sdk
+eth-account
+numpy
+pandas
+matplotlib
