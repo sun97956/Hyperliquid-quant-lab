@@ -1,4 +1,4 @@
-# Crypto Quant Lab
+# Hyperliquid Quant Lab
 
 A local research workspace for crypto strategy backtests on Hyperliquid public candles, with optional testnet paper trading.
 
@@ -25,7 +25,7 @@ First make sure opencode itself works: install it with `npm install -g opencode-
 After opencode works with DeepSeek, paste this whole prompt:
 
 ```
-You are installing the Crypto Quant Lab skill (Hyperliquid).
+You are installing the Hyperliquid Quant Lab skill.
 
 Do the following, then print a checklist table (OK / FAIL):
 1) Ensure git and python3 (>=3.9) exist.
