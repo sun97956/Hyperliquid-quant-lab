@@ -18,44 +18,47 @@ Public candle check (no keys required):
 python scripts/data.py candles ETH --granularity 1d --start 2024-01-01
 ```
 
-## Run it with opencode (agent workflow)
+## Install with opencode (recommended)
 
-### Step 1: Install opencode
+First make sure opencode itself works: install it with `npm install -g opencode-ai` (or run `npx opencode` from inside a folder — this repo carries a `package.json` for that local setup), start it, run `/connect` to connect DeepSeek, and pick the model with `/models`.
 
-Either install it globally:
+After opencode works with DeepSeek, paste this whole prompt:
 
-```bash
-npm install -g opencode-ai
+```
+You are installing the Crypto Quant Lab skill (Hyperliquid).
+
+Do the following, then print a checklist table (OK / FAIL):
+1) Ensure git and python3 (>=3.9) exist.
+2) Clone or update the skill:
+   mkdir -p ~/.claude/skills
+   if [ -d ~/.claude/skills/Hyperliquid-quant-lab/.git ]; then
+     git -C ~/.claude/skills/Hyperliquid-quant-lab fetch origin && git -C ~/.claude/skills/Hyperliquid-quant-lab pull
+   else
+     git clone https://github.com/sun97956/Hyperliquid-quant-lab.git ~/.claude/skills/Hyperliquid-quant-lab
+   fi
+3) mkdir -p ~/lab-hl && cp -R ~/.claude/skills/Hyperliquid-quant-lab/{scripts,templates} ~/lab-hl/
+4) python3 -m venv ~/lab-hl/.venv && source ~/lab-hl/.venv/bin/activate
+   pip install -U pip
+   pip install hyperliquid-python-sdk eth-account numpy pandas matplotlib
+5) Quick checks (public data only — no keys):
+   cd ~/lab-hl && source .venv/bin/activate
+   python scripts/data.py candles ETH --granularity 1h --start 2026-09-01 | tail -5
+6) NEVER ask for seed phrases, master private keys, or agent keys. Tell the user to run
+   `python scripts/setup_keys.py` themselves in their own terminal.
+
+Print versions and pass/fail for each step. Stop after the checklist.
 ```
 
-or run it without installing, from inside this folder (this repo carries a `package.json` for the local setup):
+How the skill gets imported: there is no import command — opencode scans `~/.claude/skills/` at startup, so step 2 above (cloning this repo into that folder, with `SKILL.md` at its root) is the import. If opencode was already running, restart it, then ask it to `List your available skills` to verify the skill was picked up.
 
-```bash
-npx opencode
-```
-
-Start opencode **from this repo's folder** — it works with the files and skills it can see from where it is launched.
-
-### Step 2: Connect DeepSeek
-
-Inside opencode:
-
-1. Run `/connect`, choose **DeepSeek**, and paste your DeepSeek API key.
-2. Run `/models` and select the DeepSeek model you want to use.
-3. Ask it a trivial question (e.g. "say hi") to confirm the model actually replies before you continue.
-
-### Step 3: Import the skill
-
-opencode has no "import skill" command. At startup it automatically scans a fixed set of folders for skill folders — one of them is `~/.claude/skills/`. A skill is imported simply by **cloning this repo into that folder** (the `SKILL.md` at the repo root is the playbook):
+Manual fallback:
 
 ```bash
 git clone https://github.com/sun97956/Hyperliquid-quant-lab.git ~/.claude/skills/Hyperliquid-quant-lab
+mkdir -p ~/lab-hl && cp -R ~/.claude/skills/Hyperliquid-quant-lab/{scripts,templates} ~/lab-hl/
+cd ~/lab-hl && python3 -m venv .venv && source .venv/bin/activate
+pip install hyperliquid-python-sdk eth-account numpy pandas matplotlib
 ```
-
-Two things to know:
-
-- If you clone or update the skill while opencode is already running, **restart opencode** — it only scans at startup.
-- To verify the skill was picked up, start opencode and ask it to `List your available skills`. If the skill is missing, check that `SKILL.md` sits directly inside the cloned folder.
 
 ## Strategies
 
