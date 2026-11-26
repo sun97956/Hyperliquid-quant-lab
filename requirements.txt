@@ -3,3 +3,4 @@ eth-account
 numpy
 pandas
 matplotlib
+web3

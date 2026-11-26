@@ -177,6 +177,19 @@ Safety:
 - The agent must run the dry-run form first and only add `--send` after the user explicitly confirms; never send orders automatically or from a strategy script.
 - Mainnet requires `--mainnet` plus a typed `YES`; do not use it for this lab.
 
+## Relaying weights into the fund contract
+
+`scripts/relay_weights.py` connects the strategy output to the IndexFund contract (`contracts/IndexFund.sol`, HyperEVM testnet):
+
+```bash
+python scripts/relay_weights.py --weights results/<strategy>/weights.csv --fund <FUND_ADDRESS>
+python scripts/relay_weights.py --weights results/<strategy>/weights.csv --fund <FUND_ADDRESS> --send
+```
+
+- It reads the latest `target_<COIN>` row, compares it with the on-chain weights, and checks BTC realized volatility from the `data.py` cache: high-volatility regime always relays and raises the fund's redemption fee; normal regime relays only when the largest weight change is at least 1%.
+- It also reports the trading account's total value (`reportTotalAssets`) so the fund NAV tracks the HyperCore account.
+- The contract's `agent` must be the address of `HL_AGENT_KEY` — the same env key as `trade.py`. Default is a dry run; `--send` transmits. If the contract's circuit breaker is tripped, the relay aborts and the owner must reset it first.
+
 ## Troubleshooting
 
 | Symptom | Likely fix |
@@ -202,5 +215,7 @@ Safety:
 | `scripts/report_html.py` | Single-file HTML report page |
 | `scripts/setup_keys.py` | Optional key storage |
 | `scripts/trade.py` | Optional testnet orders |
+| `scripts/relay_weights.py` | Relay strategy weights + valuation into the IndexFund contract |
+| `contracts/` | IndexFund contract, reusable interface, local rehearsal |
 | `results/` | Per-strategy backtest outputs |
 | `templates/` | Report templates |
