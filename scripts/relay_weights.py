@@ -129,8 +129,21 @@ def trading_account_value_usdc() -> float | None:
         network = os.environ.get("HL_NETWORK", "testnet").lower()
         base = constants.MAINNET_API_URL if network == "mainnet" else constants.TESTNET_API_URL
         info = Info(base, skip_ws=True)
-        state = info.user_state(addr)
-        return float(state["marginSummary"]["accountValue"])
+        perp_value = float(info.user_state(addr)["marginSummary"]["accountValue"])
+        if perp_value > 0:
+            return perp_value
+        # Unified account mode: the perp view reads 0 and the whole USDC
+        # balance sits in the spot pot — fall back to the spot USDC total.
+        spot = info.spot_user_state(addr)
+        for bal in spot.get("balances", []):
+            if bal.get("coin") == "USDC":
+                spot_value = float(bal["total"])
+                if spot_value > 0:
+                    print("note: perp value is 0 (unified account?) — using spot USDC total")
+                    return spot_value
+        # Never report a zero valuation: it would zero the fund's NAV.
+        print("warning: trading account value reads 0 — skipping the valuation report")
+        return None
     except Exception as exc:  # network hiccup etc. — report, don't crash the relay
         print(f"warning: could not read trading account value ({exc})")
         return None
