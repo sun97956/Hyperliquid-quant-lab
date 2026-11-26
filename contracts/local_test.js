@@ -51,7 +51,9 @@ function compile() {
     // (MCOPY) that the local ganache fork cannot execute — string reads
     // then fail with "missing revert data". Paris keeps the rehearsal
     // chain-compatible; deployment compiles can target a newer fork.
-    settings: { evmVersion: 'paris', outputSelection: { '*': { '*': ['abi', 'evm.bytecode.object'] } } },
+    // Optimizer on: unoptimized IndexFund needs ~3.6M gas to deploy,
+    // above HyperEVM's 3M small-block limit; optimized it is ~2.0M.
+    settings: { evmVersion: 'paris', optimizer: { enabled: true, runs: 200 }, outputSelection: { '*': { '*': ['abi', 'evm.bytecode.object'] } } },
   };
   const out = JSON.parse(solc.compile(JSON.stringify(input), {
     import: (p) => ({ contents: fs.readFileSync(path.join(DIR, p.replace('./', '')), 'utf8') }),
@@ -72,6 +74,7 @@ async function main() {
   const owner = await provider.getSigner(0);
   const agent = await provider.getSigner(1);
   const investor = await provider.getSigner(2);
+  const newOwner = await provider.getSigner(3);
   const agentAddr = await agent.getAddress();
 
   async function deploy(file, name, signer, args) {
@@ -140,6 +143,14 @@ async function main() {
   await fund.connect(investor).redeem(100n * U); // gross 80, fee 0.8, payout 79.2
   check('fee: redeem of 100 shares pays out 79.2',
     (await usd.balanceOf(await investor.getAddress())) === 630n * U + 792n * U / 10n);
+
+  // --- Act 7: ownership transfer moves owner rights ---
+  await fund.connect(owner).transferOwnership(await newOwner.getAddress());
+  check('ownership: new owner recorded', (await fund.owner()) === (await newOwner.getAddress()));
+  await expectRevert('ownership: old owner loses whitelist rights',
+    fund.connect(owner).setCoinAllowed('DOGE', true));
+  await fund.connect(newOwner).setCoinAllowed('DOGE', true);
+  check('ownership: new owner can whitelist', await fund.coinAllowed('DOGE'));
 
   console.log(failures === 0 ? '\nALL CHECKS PASSED' : '\n' + failures + ' CHECK(S) FAILED');
   process.exit(failures === 0 ? 0 : 1);

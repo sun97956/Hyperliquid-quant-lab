@@ -111,6 +111,7 @@ contract IndexFund is IIndexFund {
 
     event BreakerReset(uint256 navPerShare);
     event AgentUpdated(address indexed newAgent);
+    event OwnershipTransferred(address indexed newOwner);
     event CoinWhitelistUpdated(string coin, bool allowed);
     event GuardrailsUpdated(uint256 maxSingleWeightBps, uint256 maxDrawdownBps);
     event RedemptionFeeUpdated(uint256 redemptionFeeBps);
@@ -266,6 +267,12 @@ contract IndexFund is IIndexFund {
     function setAgent(address newAgent) external onlyOwner {
         agent = newAgent;
         emit AgentUpdated(newAgent);
+    }
+
+    function transferOwnership(address newOwner) external onlyOwner {
+        require(newOwner != address(0), "new owner is zero address");
+        owner = newOwner;
+        emit OwnershipTransferred(newOwner);
     }
 
     function setCoinAllowed(string calldata coin, bool allowed) external onlyOwner {
