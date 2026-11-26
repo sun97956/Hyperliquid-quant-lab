@@ -190,6 +190,19 @@ python scripts/relay_weights.py --weights results/<strategy>/weights.csv --fund 
 - It also reports the trading account's total value (`reportTotalAssets`) so the fund NAV tracks the HyperCore account.
 - The contract's `agent` must be the address of `HL_AGENT_KEY` — the same env key as `trade.py`. Default is a dry run; `--send` transmits. If the contract's circuit breaker is tripped, the relay aborts and the owner must reset it first.
 
+## Deployed fund (HyperEVM testnet, chain 998)
+
+Deployed 2026-11-26; explorer: https://testnet.purrsec.com
+
+| Contract | Address |
+| --- | --- |
+| IndexFund (AIDX) | `0xB29aDaB6f2ea9Bf9EE084E22006a739802E0Fbe4` |
+| MockUSD (base asset) | `0x1f2DDA28Dbd9800df76DcC3582E1102CFfe24944` |
+
+- Owner: the main wallet `0x8d30B151Df52b12226A8840971bd6C696e36270e`; agent: `0xd296ecc079ef15589cd8dd33853e08979a95828f` (the `HL_AGENT_KEY` address).
+- Whitelist: BTC, ETH, SOL, BNB, HYPE. First live relay (2026-11-26): Index Strategy v1 weights on-chain (BNB 15% / BTC 50% / ETH 10% / HYPE 17.5% / SOL 7.5%), reported valuation 982.8 USDC.
+- Deployment compile settings: Solidity 0.8, optimizer runs 200, EVM version paris (unoptimized bytecode exceeds HyperEVM's 3M small-block gas limit).
+
 ## Troubleshooting
 
 | Symptom | Likely fix |
