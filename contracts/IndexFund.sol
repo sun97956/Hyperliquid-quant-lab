@@ -147,8 +147,16 @@ contract IndexFund is IIndexFund {
         return (totalAssets() * 1e6) / totalSupply;
     }
 
-    function getWeights() external view returns (string[] memory, uint256[] memory, uint256) {
-        return (_weightCoins, _weightBps, weightsUpdatedAt);
+    function getWeights() external view returns (string[] memory coins, uint256[] memory weightsBps, uint256) {
+        // Build the return arrays element by element: returning the storage
+        // string array directly fails on the default code generator.
+        coins = new string[](_weightCoins.length);
+        weightsBps = new uint256[](_weightBps.length);
+        for (uint256 i = 0; i < _weightCoins.length; i++) {
+            coins[i] = _weightCoins[i];
+            weightsBps[i] = _weightBps[i];
+        }
+        return (coins, weightsBps, weightsUpdatedAt);
     }
 
     // ---------- Investor actions ----------
@@ -209,8 +217,14 @@ contract IndexFund is IIndexFund {
             sum += weightsBps[i];
         }
         require(sum <= 10000, "weights sum above 100%");
-        _weightCoins = coins;
-        _weightBps = weightsBps;
+        // Copy element by element: assigning a calldata string array to
+        // storage in one go is not supported by the default code generator.
+        delete _weightCoins;
+        delete _weightBps;
+        for (uint256 i = 0; i < coins.length; i++) {
+            _weightCoins.push(coins[i]);
+            _weightBps.push(weightsBps[i]);
+        }
         weightsUpdatedAt = block.timestamp;
         emit WeightsUpdated(coins, weightsBps, block.timestamp);
     }
