@@ -1,6 +1,6 @@
 # Hyperliquid Quant Lab
 
-A local research workspace for crypto strategy backtests on Hyperliquid public candles, with optional testnet paper trading.
+A local research workspace for crypto strategy backtests on Hyperliquid public candles, with optional testnet paper trading. It also carries an on-chain index fund on HyperEVM testnet: strategy weights are relayed into a smart contract that issues tokenized fund shares at NAV.
 
 It can be driven two ways: run the Python scripts directly, or let an opencode + DeepSeek agent drive them through the `SKILL.md` playbook in this repo. Either way, all computation stays in the scripts — the agent only fills in parameters, runs commands, and explains results.
 
@@ -36,7 +36,7 @@ Do the following, then print a checklist table (OK / FAIL):
    else
      git clone https://github.com/sun97956/Hyperliquid-quant-lab.git ~/.claude/skills/Hyperliquid-quant-lab
    fi
-3) mkdir -p ~/lab-hl && cp -R ~/.claude/skills/Hyperliquid-quant-lab/{scripts,templates} ~/lab-hl/ && cp ~/.claude/skills/Hyperliquid-quant-lab/requirements.txt ~/lab-hl/
+3) mkdir -p ~/lab-hl && cp -R ~/.claude/skills/Hyperliquid-quant-lab/{scripts,templates,contracts} ~/lab-hl/ && cp ~/.claude/skills/Hyperliquid-quant-lab/requirements.txt ~/lab-hl/
 4) python3 -m venv ~/lab-hl/.venv && source ~/lab-hl/.venv/bin/activate
    pip install -U pip
    pip install -r requirements.txt
@@ -55,7 +55,7 @@ Manual fallback:
 
 ```bash
 git clone https://github.com/sun97956/Hyperliquid-quant-lab.git ~/.claude/skills/Hyperliquid-quant-lab
-mkdir -p ~/lab-hl && cp -R ~/.claude/skills/Hyperliquid-quant-lab/{scripts,templates} ~/lab-hl/ && cp ~/.claude/skills/Hyperliquid-quant-lab/requirements.txt ~/lab-hl/
+mkdir -p ~/lab-hl && cp -R ~/.claude/skills/Hyperliquid-quant-lab/{scripts,templates,contracts} ~/lab-hl/ && cp ~/.claude/skills/Hyperliquid-quant-lab/requirements.txt ~/lab-hl/
 cd ~/lab-hl && python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
@@ -137,6 +137,25 @@ Safety:
 - Use testnet unless you intentionally intend to use real funds.
 - Keep per-order notional small and create `KILL_SWITCH` to freeze sends.
 
+## On-chain index fund (HyperEVM testnet)
+
+`contracts/` holds the tokenized fund: `IndexFund.sol` (fund shares issued and redeemed at NAV, on-chain target weights, guardrails: coin whitelist, 50% single-asset cap, 20% drawdown circuit breaker, volatility-linked redemption fee), `IIndexFund.sol` (the reusable interface third-party developers plug into), `MockUSD.sol` (test base asset with a public faucet), and `local_test.js` (local end-to-end rehearsal, 20 checks).
+
+`scripts/relay_weights.py` bridges a strategy's `weights.csv` into the contract: it reads the latest target weights, checks BTC realized volatility (high volatility pushes immediately and raises the redemption fee to 100 bps; otherwise a push needs at least a 1% weight change), and — signed by the agent key — writes the weights and reports the trading account's total value as the fund's valuation. Default is a dry run; `--send` transmits.
+
+```bash
+python scripts/relay_weights.py --weights results/index_strategy_v1/weights.csv --fund <FUND_ADDRESS> --send
+```
+
+Deployed 2026-11-26 on HyperEVM testnet (chain 998; explorer: https://testnet.purrsec.com):
+
+| Contract | Address |
+|---|---|
+| IndexFund (AIDX) | `0xB29aDaB6f2ea9Bf9EE084E22006a739802E0Fbe4` |
+| MockUSD | `0x1f2DDA28Dbd9800df76DcC3582E1102CFfe24944` |
+
+The owner is the main wallet; the contract's agent is the same agent key as `trade.py`. Compile with optimizer runs 200 and EVM version paris — unoptimized bytecode exceeds HyperEVM's 3M small-block gas limit.
+
 ## Project layout
 
 | File | Role |
@@ -152,4 +171,7 @@ Safety:
 | `scripts/report_html.py` | Single-file HTML result page |
 | `scripts/setup_keys.py` | Save master address + agent key |
 | `scripts/trade.py` | Optional testnet orders via agent wallet |
+| `scripts/relay_weights.py` | Relay strategy weights + valuation into the fund contract |
+| `scripts/equal_weight_index.py` | Equal Weight Index strategy |
+| `contracts/` | IndexFund contracts (fund, interface, MockUSD) and local rehearsal |
 | `results/` | Per-strategy backtest outputs |
